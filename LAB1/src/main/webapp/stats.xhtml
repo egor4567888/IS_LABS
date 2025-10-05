@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      template="/template.xhtml">
+<ui:define name="content">
+    <h:form>
+        <h2>Статистика</h2>
+
+        <p:panelGrid columns="2">
+            <h:outputLabel value="Цвет волос:"/>
+            <p:inputText id="hairColor"/>
+
+            <h:outputLabel value="Цвет глаз:"/>
+            <p:inputText id="eyeColor"/>
+
+            <h:outputLabel value="Рост меньше:"/>
+            <p:inputText id="heightValue"/>
+
+            <p:commandButton value="Посчитать (волосы)"
+                             action="#{personMB.countByHairColor(hairColor.value)}"
+                             update="@form"/>
+            <p:commandButton value="Посчитать (глаза)"
+                             action="#{personMB.countByEyeColor(eyeColor.value)}"
+                             update="@form"/>
+            <p:commandButton value="Посчитать (рост)"
+                             action="#{personMB.countHeightLessThan(heightValue.value)}"
+                             update="@form"/>
+        </p:panelGrid>
+    </h:form>
+</ui:define>
+</html>

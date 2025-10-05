@@ -1,17 +1,75 @@
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
-      xmlns:p="http://primefaces.org/ui">
-<h:head>
-    <title>Persons List</title>
-</h:head>
-<h:body>
-    <h:form>
-        <p:dataTable value="#{personMB.persons}" var="p" paginator="true" rows="10">
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      template="/template.xhtml">
+<ui:define name="content">
+    <h:form id="personsForm">
+        <h2>Список персон</h2>
+
+        <p:panelGrid columns="3">
+            <p:inputText value="#{personMB.filterColumn}" placeholder="Имя колонки"/>
+            <p:inputText value="#{personMB.filterValue}" placeholder="Значение"/>
+            <p:commandButton value="Фильтр" actionListener="#{personMB.filter}" update="personsTable"/>
+        </p:panelGrid>
+
+        <p:dataTable id="personsTable" value="#{personMB.persons}" var="p"
+                     paginator="true" rows="10" selectionMode="single">
+
             <p:column headerText="ID">#{p.id}</p:column>
-            <p:column headerText="Name">#{p.name}</p:column>
-            <p:column headerText="Height">#{p.height}</p:column>
-            <p:column headerText="Nationality">#{p.nationality}</p:column>
+            <p:column headerText="Имя">#{p.name}</p:column>
+            <p:column headerText="Рост">#{p.height}</p:column>
+            <p:column headerText="Нация">#{p.nationality}</p:column>
+
+            <p:column headerText="Действия">
+                <p:commandButton icon="pi pi-pencil"
+                                 update=":editDialog"
+                                 oncomplete="PF('editDlg').show()"
+                                 actionListener="#{personMB.edit(p)}"/>
+                <p:commandButton icon="pi pi-trash"
+                                 actionListener="#{personMB.delete(p)}"
+                                 update="@form"
+                                 styleClass="ui-button-danger"/>
+            </p:column>
         </p:dataTable>
+
+        <br/>
+        <p:commandButton value="Добавить" icon="pi pi-plus"
+                         oncomplete="PF('addDlg').show()"
+                         actionListener="#{personMB.addNew}" update=":addDialog"/>
+
+        <!-- Диалог добавления -->
+        <p:dialog id="addDialog" header="Добавление" widgetVar="addDlg" modal="true">
+            <h:panelGrid columns="2">
+                <h:outputLabel value="Имя:"/>
+                <p:inputText value="#{personMB.newPerson.name}" required="true"/>
+
+                <h:outputLabel value="Рост:"/>
+                <p:inputText value="#{personMB.newPerson.height}" required="true"/>
+
+                <h:outputLabel value="Нация:"/>
+                <p:inputText value="#{personMB.newPerson.nationality}" required="true"/>
+            </h:panelGrid>
+            <p:commandButton value="Сохранить" actionListener="#{personMB.saveNew}"
+                             update="@form personsTable" oncomplete="PF('addDlg').hide()"/>
+        </p:dialog>
+
+        <!-- Диалог редактирования -->
+        <p:dialog id="editDialog" header="Редактирование" widgetVar="editDlg" modal="true">
+            <h:panelGrid columns="2">
+                <h:outputLabel value="Имя:"/>
+                <p:inputText value="#{personMB.selected.name}" required="true"/>
+
+                <h:outputLabel value="Рост:"/>
+                <p:inputText value="#{personMB.selected.height}" required="true"/>
+
+                <h:outputLabel value="Нация:"/>
+                <p:inputText value="#{personMB.selected.nationality}" required="true"/>
+            </h:panelGrid>
+            <p:commandButton value="Сохранить" actionListener="#{personMB.saveEdit}"
+                             update="@form personsTable" oncomplete="PF('editDlg').hide()"/>
+        </p:dialog>
     </h:form>
-</h:body>
+</ui:define>
 </html>
