@@ -1,27 +1,28 @@
 plugins {
-    id("java")
+    id("org.springframework.boot") version "3.1.6"
+    id("io.spring.dependency-management") version "1.1.0"
+    java
 }
 
-group = "org.example"
-version = "1.0-SNAPSHOT"
+group = "com.example"
+version = "0.1.0"
+java.sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation("javax:javaee-api:8.0.1")
-
-    // EclipseLink JPA
-    implementation("org.eclipse.persistence:org.eclipse.persistence.jpa:2.7.9")
-
-    // PostgreSQL הנאיגונ
-    implementation("org.postgresql:postgresql:42.6.0")
-
-    // PrimeFaces הכÿ JSF UI
-    implementation("org.primefaces:primefaces:12.0.0")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-websocket")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.hibernate.validator:hibernate-validator:8.0.0.Final")
+    implementation("com.h2database:h2")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
-tasks.test {
+tasks.withType<Test> {
     useJUnitPlatform()
 }
