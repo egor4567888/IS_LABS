@@ -16,9 +16,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-websocket")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.hibernate.validator:hibernate-validator:8.0.0.Final")
-    implementation("com.h2database:h2")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("com.h2database:h2")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
