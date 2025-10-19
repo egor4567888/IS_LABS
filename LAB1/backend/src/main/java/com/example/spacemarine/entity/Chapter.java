@@ -1,5 +1,6 @@
 package com.example.spacemarine.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -27,6 +28,7 @@ public class Chapter {
     private Long marinesCount;
 
     @OneToMany(mappedBy = "chapter", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private Set<SpaceMarine> marines = new HashSet<>();
 
     public Chapter() {}

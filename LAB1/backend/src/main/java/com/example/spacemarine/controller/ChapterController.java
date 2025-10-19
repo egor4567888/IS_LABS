@@ -1,6 +1,8 @@
 package com.example.spacemarine.controller;
 
+import com.example.spacemarine.dto.ChapterDto;
 import com.example.spacemarine.entity.Chapter;
+import com.example.spacemarine.mapper.EntityMapper;
 import com.example.spacemarine.service.ChapterService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/chapters")
@@ -22,26 +25,32 @@ public class ChapterController {
     }
 
     @GetMapping
-    public List<Chapter> list() {
-        return svc.listAll();
+    public List<ChapterDto> list() {
+        return svc.listAll().stream()
+                .map(EntityMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Chapter> get(@PathVariable Long id) {
-        return svc.get(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ChapterDto> get(@PathVariable Long id) {
+        return svc.get(id)
+                .map(EntityMapper::toDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<Chapter> create(@Valid @RequestBody Chapter body) {
-        Chapter created = svc.create(body);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    public ResponseEntity<ChapterDto> create(@Valid @RequestBody ChapterDto dto) {
+        Chapter c = EntityMapper.fromDto(dto);
+        Chapter created = svc.create(c);
+        return ResponseEntity.status(HttpStatus.CREATED).body(EntityMapper.toDto(created));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Chapter> update(@PathVariable Long id, @Valid @RequestBody Chapter body) {
+    public ResponseEntity<ChapterDto> update(@PathVariable Long id, @Valid @RequestBody ChapterDto dto) {
         try {
-            Chapter updated = svc.update(id, body);
-            return ResponseEntity.ok(updated);
+            Chapter updated = svc.update(id, EntityMapper.fromDto(dto));
+            return ResponseEntity.ok(EntityMapper.toDto(updated));
         } catch (NoSuchElementException ex) {
             return ResponseEntity.notFound().build();
         }

@@ -20,6 +20,8 @@ dependencies {
     implementation("com.h2database:h2")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    implementation("org.postgresql:postgresql")
+
 }
 
 tasks.withType<Test> {
