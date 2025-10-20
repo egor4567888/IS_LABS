@@ -4,23 +4,26 @@ import com.example.spacemarine.entity.Chapter;
 import com.example.spacemarine.repository.ChapterRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class ChapterService {
 
     private final ChapterRepository repo;
     private final JdbcTemplate jdbc;
+    private final SimpMessagingTemplate messaging; // Добавляем messaging
 
     @Autowired
-    public ChapterService(ChapterRepository repo, JdbcTemplate jdbc) {
+    public ChapterService(ChapterRepository repo, JdbcTemplate jdbc, SimpMessagingTemplate messaging) {
         this.repo = repo;
         this.jdbc = jdbc;
+        this.messaging = messaging;
     }
 
     public List<Chapter> listAll() {
@@ -33,7 +36,9 @@ public class ChapterService {
 
     @Transactional
     public Chapter create(Chapter c) {
-        return repo.save(c);
+        Chapter saved = repo.save(c);
+        notifyClients("create", saved.getId());
+        return saved;
     }
 
     @Transactional
@@ -41,12 +46,17 @@ public class ChapterService {
         Chapter exist = repo.findById(id).orElseThrow(() -> new NoSuchElementException("Chapter not found"));
         exist.setName(c.getName());
         exist.setMarinesCount(c.getMarinesCount());
-        return repo.save(exist);
+        Chapter saved = repo.save(exist);
+        notifyClients("update", saved.getId());
+        return saved;
     }
 
     @Transactional
     public void delete(Long id) {
-        repo.deleteById(id);
+        if (repo.existsById(id)) {
+            repo.deleteById(id);
+            notifyClients("delete", id);
+        }
     }
 
     // create via DB function (Postgres) or fallback to repo
@@ -54,10 +64,12 @@ public class ChapterService {
         try {
             // call function fn_create_chapter(nm, count) returning id
             Long newId = jdbc.queryForObject("SELECT fn_create_chapter(?, ?)", Long.class, name, count);
+            notifyClients("create", newId);
             return newId;
         } catch (Exception ex) {
             Chapter ch = new Chapter(name, count);
             Chapter saved = repo.save(ch);
+            notifyClients("create", saved.getId());
             return saved.getId();
         }
     }
@@ -65,8 +77,45 @@ public class ChapterService {
     public void dissolveChapterViaDb(Long id) {
         try {
             jdbc.update("SELECT fn_dissolve_chapter(?)", id);
+            notifyClients("delete", id);
+            // Также уведомляем об удалении космодесантников, которые могли быть удалены
+            notifyMarineClientsAboutChapterDeletion(id);
         } catch (Exception ex) {
-            repo.deleteById(id);
+            if (repo.existsById(id)) {
+                repo.deleteById(id);
+                notifyClients("delete", id);
+                notifyMarineClientsAboutChapterDeletion(id);
+            }
         }
+    }
+
+    private void notifyClients(String action, Long id) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    Map<String, Object> payload = new HashMap<>();
+                    payload.put("action", action);
+                    payload.put("id", id);
+                    payload.put("type", "chapter");
+                    messaging.convertAndSend("/topic/chapters", payload);
+                }
+            });
+        } else {
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("action", action);
+            payload.put("id", id);
+            payload.put("type", "chapter");
+            messaging.convertAndSend("/topic/chapters", payload);
+        }
+    }
+
+    private void notifyMarineClientsAboutChapterDeletion(Long chapterId) {
+        // Отправляем специальное сообщение для космодесантников
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("action", "chapter_deleted");
+        payload.put("chapterId", chapterId);
+        payload.put("type", "marine_cleanup");
+        messaging.convertAndSend("/topic/spaceMarines", payload);
     }
 }

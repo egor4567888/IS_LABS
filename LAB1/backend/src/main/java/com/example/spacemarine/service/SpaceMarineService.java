@@ -9,6 +9,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
 
 import java.util.*;
 
@@ -73,10 +76,23 @@ public class SpaceMarineService {
     }
 
     private void notifyClients(String action, Long id) {
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("action", action);
-        payload.put("id", id);
-        messaging.convertAndSend("/topic/spaceMarines", payload);
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    Map<String, Object> payload = new HashMap<>();
+                    payload.put("action", action);
+                    payload.put("id", id);
+                    messaging.convertAndSend("/topic/spaceMarines", payload);
+                }
+            });
+        } else {
+            // fallback (например, если нет транзакции)
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("action", action);
+            payload.put("id", id);
+            messaging.convertAndSend("/topic/spaceMarines", payload);
+        }
     }
 
     // Special operations (simple implementations)
