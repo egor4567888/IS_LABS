@@ -46,8 +46,9 @@ public class Chapter {
         return name;
     }
 
+    @Transient
     public Long getMarinesCount() {
-        return marinesCount;
+        return marines != null ? (long) marines.size() : 0L;
     }
 
     public void setId(Long id) {
@@ -58,9 +59,6 @@ public class Chapter {
         this.name = name;
     }
 
-    public void setMarinesCount(Long marinesCount) {
-        this.marinesCount = marinesCount;
-    }
 
     public Set<SpaceMarine> getMarines() {
         return marines;

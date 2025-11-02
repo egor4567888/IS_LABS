@@ -17,7 +17,7 @@ public class ChapterService {
 
     private final ChapterRepository repo;
     private final JdbcTemplate jdbc;
-    private final SimpMessagingTemplate messaging; // Добавляем messaging
+    private final SimpMessagingTemplate messaging;
 
     @Autowired
     public ChapterService(ChapterRepository repo, JdbcTemplate jdbc, SimpMessagingTemplate messaging) {
@@ -45,7 +45,6 @@ public class ChapterService {
     public Chapter update(Long id, Chapter c) {
         Chapter exist = repo.findById(id).orElseThrow(() -> new NoSuchElementException("Chapter not found"));
         exist.setName(c.getName());
-        exist.setMarinesCount(c.getMarinesCount());
         Chapter saved = repo.save(exist);
         notifyClients("update", saved.getId());
         return saved;
@@ -59,10 +58,8 @@ public class ChapterService {
         }
     }
 
-    // create via DB function (Postgres) or fallback to repo
     public Long createChapterViaDb(String name, Long count) {
         try {
-            // call function fn_create_chapter(nm, count) returning id
             Long newId = jdbc.queryForObject("SELECT fn_create_chapter(?, ?)", Long.class, name, count);
             notifyClients("create", newId);
             return newId;
@@ -78,7 +75,6 @@ public class ChapterService {
         try {
             jdbc.update("SELECT fn_dissolve_chapter(?)", id);
             notifyClients("delete", id);
-            // Также уведомляем об удалении космодесантников, которые могли быть удалены
             notifyMarineClientsAboutChapterDeletion(id);
         } catch (Exception ex) {
             if (repo.existsById(id)) {
@@ -111,7 +107,6 @@ public class ChapterService {
     }
 
     private void notifyMarineClientsAboutChapterDeletion(Long chapterId) {
-        // Отправляем специальное сообщение для космодесантников
         Map<String, Object> payload = new HashMap<>();
         payload.put("action", "chapter_deleted");
         payload.put("chapterId", chapterId);

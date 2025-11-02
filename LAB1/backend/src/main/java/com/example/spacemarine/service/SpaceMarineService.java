@@ -32,6 +32,7 @@ public class SpaceMarineService {
     public Page<SpaceMarine> list(int page, int size, String sortBy, String nameFilter, String achievementsFilter) {
         Sort sort = Sort.by(sortBy == null || sortBy.isBlank() ? "id" : sortBy);
         Pageable p = PageRequest.of(page, size, sort);
+
         if (nameFilter != null && !nameFilter.isBlank()) {
             return repo.findByName(nameFilter, p);
         }
@@ -87,7 +88,6 @@ public class SpaceMarineService {
                 }
             });
         } else {
-            // fallback (например, если нет транзакции)
             Map<String, Object> payload = new HashMap<>();
             payload.put("action", action);
             payload.put("id", id);
@@ -95,20 +95,19 @@ public class SpaceMarineService {
         }
     }
 
-    // Special operations (simple implementations)
+
     public List<Map<String, Object>> groupByAchievements() {
-        // Try DB group (works in H2 view too)
+
         try {
             return jdbc.queryForList("SELECT achievements, COUNT(*) AS cnt FROM space_marines GROUP BY achievements");
         } catch (Exception ex) {
-            // fallback empty
+
             return Collections.emptyList();
         }
     }
 
     public long countWeaponTypeLessThan(String weaponName) {
         if (weaponName == null) return 0;
-        // interpret "less than" by enum ordinal defined in Weapon enum
         try {
             Weapon target = Weapon.valueOf(weaponName);
             int targetOrd = target.ordinal();

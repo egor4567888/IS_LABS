@@ -89,7 +89,7 @@ export default function SpaceMarinesPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [wsConnected, setWsConnected] = useState(false);
 
-  const API_BASE_URL = 'http://localhost:8080';
+  const API_BASE_URL = 'http://localhost:24788';
 
   // Загрузка космодесантников
   const fetchMarines = useCallback(async () => {
@@ -163,10 +163,10 @@ export default function SpaceMarinesPage() {
   useEffect(() => {
     console.log('Initializing WebSocket...');
     
-    // Подписываемся на изменения подключения
+    // Подписка на изменения подключения
     webSocketService.onConnectionChange(handleConnectionChange);
     
-    // Подписываемся на обновления космодесантников
+    // Подписка на обновления космодесантников
     webSocketService.subscribe('/topic/spaceMarines', handleWebSocketMessage);
     
     // Подключаемся к WebSocket
@@ -264,7 +264,6 @@ export default function SpaceMarinesPage() {
 
         if (res.ok) {
           showSuccess('Космодесантник успешно удален');
-          // Данные автоматически обновятся через WebSocket
         } else {
           showError('Ошибка при удалении космодесантника');
         }
@@ -326,7 +325,6 @@ export default function SpaceMarinesPage() {
       if (res.ok) {
         setDialogOpen(false);
         showSuccess(editingMarine ? 'Космодесантник успешно обновлен' : 'Космодесантник успешно создан');
-        // Данные автоматически обновятся через WebSocket
       } else {
         const errorData = await res.json();
         const errorMessage = errorData.error || 'Неизвестная ошибка';
@@ -437,7 +435,7 @@ export default function SpaceMarinesPage() {
                     />
                   </div>
 
-                  {/* Глава */}
+                  {/* Орден */}
                   <div className="space-y-2">
                     <Label htmlFor="chapter">Chapter *</Label>
                     <Select

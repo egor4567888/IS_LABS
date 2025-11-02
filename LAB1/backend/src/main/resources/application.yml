@@ -1,9 +1,9 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/marines
+    url: jdbc:postgresql://localhost:5432/studs
     driver-class-name: org.postgresql.Driver
-    username: name
-    password: pass
+    username: s412905
+    password: PzifW6F1NegAkSI7
   jpa:
     hibernate:
       ddl-auto: update
@@ -14,4 +14,4 @@ spring:
         format_sql: true
 
 server:
-  port: 8080
+  port: 24788

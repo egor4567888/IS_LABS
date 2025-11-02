@@ -28,7 +28,7 @@ class WebSocketService {
   private initializeClient() {
     this.client = new Client({
       // Используем SockJS для совместимости с Spring WebSocket
-      webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+      webSocketFactory: () => new SockJS('http://localhost:24788/ws'),
       
       // Настройки отладки
       debug: (str) => {
@@ -67,7 +67,7 @@ class WebSocketService {
         this.client.activate();
         console.log('WebSocket: Attempting to connect...');
         
-        // Запускаем проверку соединения
+
         this.startConnectionCheck();
       } catch (error) {
         console.error('WebSocket: Connection error:', error);
@@ -123,7 +123,6 @@ class WebSocketService {
   // Подписка на изменения состояния подключения
   public onConnectionChange(callback: ConnectionCallback): void {
     this.connectionSubscribers.push(callback);
-    // Немедленно вызываем callback с текущим статусом
     callback(this._isConnected);
   }
 
@@ -152,7 +151,7 @@ class WebSocketService {
     return this._isConnected;
   }
 
-  // Для совместимости с вашим кодом
+
   public getIsConnected(): boolean {
     return this._isConnected;
   }
@@ -273,5 +272,4 @@ class WebSocketService {
   }
 }
 
-// Создаем и экспортируем singleton экземпляр
 export const webSocketService = new WebSocketService();
